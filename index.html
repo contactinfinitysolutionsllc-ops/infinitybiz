@@ -122,9 +122,9 @@ footer a{color:var(--accent2);text-decoration:none}
 <body>
 
 <nav>
-  <a href="https://contactinfinitysolutionsllc-ops.github.io/infinityhub/" class="logo">Infinity<em>.</em>Solutions</a>
+  <a href="https://infinityhub.dev" class="logo">Infinity<em>.</em>Solutions</a>
   <div class="nav-right">
-    <a href="https://contactinfinitysolutionsllc-ops.github.io/infinityhub/" class="nav-back">← Back to hub</a>
+    <a href="https://infinityhub.dev" class="nav-back">← Back to hub</a>
     <span class="nav-badge">Infinity Biz</span>
   </div>
 </nav>
@@ -143,7 +143,7 @@ footer a{color:var(--accent2);text-decoration:none}
 
 <div class="app-wrap">
 
-  <div class="free-banner">
+  <div class="free-banner" id="free-banner">
     <div class="free-left">Free uses remaining this month: <strong id="free-count">5</strong> of 5</div>
     <div style="font-size:.72rem;color:var(--muted)">Resets monthly</div>
   </div>
@@ -410,7 +410,7 @@ footer a{color:var(--accent2);text-decoration:none}
 </div>
 
 <footer>
-  <p>© 2025 <a href="https://contactinfinitysolutionsllc-ops.github.io/infinityhub/">Infinity Solutions LLC</a> · All Rights Reserved</p>
+  <p>© 2025 <a href="https://infinityhub.dev">Infinity Solutions LLC</a> · All Rights Reserved</p>
 </footer>
 
 <script>
@@ -545,16 +545,20 @@ Include a professional header, all the details above, and a polite thank you at 
 }
 
 // ── SUBSCRIBER CHECK ─────────────────────────────────────
+let _subCache = null;
 async function isSubscribed() {
   const email = localStorage.getItem('biz_email');
   if(!email) return false;
+  if(_subCache !== null) return _subCache;
   try {
     const res = await fetch(WORKER_URL, {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({action:'checkSubscriber', email, app:'infinitybiz'})
     });
     const data = await res.json();
-    return data.active === true;
+    _subCache = data.active === true;
+    setTimeout(() => { _subCache = null; }, 5 * 60 * 1000);
+    return _subCache;
   } catch { return false; }
 }
 
@@ -577,6 +581,7 @@ async function unlockWithEmail() {
     const data = await res.json();
     if(data.active) {
       localStorage.setItem('biz_email', email);
+      _subCache = true;
       document.getElementById('biz-paywall').style.display = 'none';
       document.getElementById('free-banner').style.display = 'none';
       document.getElementById('free-banner').innerHTML = '<div class="free-left">✓ <strong>Unlimited</strong> — subscribed as ' + email + '</div>';
