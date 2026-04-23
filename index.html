@@ -386,11 +386,13 @@ footer a{color:var(--accent2);text-decoration:none}
   </div>
 
   <!-- OUTPUT -->
+  <div id="tool-error" style="display:none;margin-top:.8rem;padding:.7rem 1rem;background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.25);border-radius:10px;font-size:.82rem;color:#ff6b6b;"></div>
   <div class="output-wrap" id="output-wrap">
     <div class="output-box" id="output-box"></div>
     <div class="output-actions">
       <button class="btn-copy" id="copy-btn" onclick="copyOutput()">📋 Copy</button>
-      <button class="btn-new" onclick="newContent()">← New content</button>
+      <button class="btn-copy" onclick="downloadOutput()">⬇ Download .txt</button>
+      <button class="btn-new" onclick="newContent()">← New</button>
     </div>
   </div>
 
@@ -398,19 +400,25 @@ footer a{color:var(--accent2);text-decoration:none}
   <div id="biz-paywall" style="display:none;background:var(--bg2);border:1px solid rgba(167,139,250,.2);border-radius:16px;padding:1.8rem;margin-top:1.2rem;text-align:center">
     <p style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:.5rem">You've used your 5 free uses</p>
     <p style="font-size:.85rem;color:var(--muted2);margin-bottom:1.5rem;font-weight:300">Subscribe for unlimited access or pay per use. Already subscribed? Enter your email to unlock.</p>
-    <div style="display:flex;gap:8px;margin-bottom:1.2rem;max-width:420px;margin-left:auto;margin-right:auto">
+    <div style="display:flex;gap:8px;margin-bottom:.8rem;max-width:420px;margin-left:auto;margin-right:auto">
       <input type="email" id="unlock-email" placeholder="Your email address" style="flex:1">
       <button id="unlock-btn" onclick="unlockWithEmail()" style="background:var(--accent);color:#0a0818;font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;padding:.65rem 1.1rem;border-radius:100px;border:none;cursor:pointer;white-space:nowrap">Unlock</button>
     </div>
+    <div id="paywall-error" style="display:none;margin:0 auto .8rem;max-width:420px;padding:.6rem .9rem;background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.25);border-radius:10px;font-size:.82rem;color:#ff6b6b;text-align:left"></div>
     <input type="email" id="pay-email" placeholder="Your email (for subscription access)" style="max-width:420px;margin:0 auto 1rem;display:block">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:420px;margin:0 auto 1rem">
-      <div onclick="handleBizPay('single')" style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:1rem;cursor:pointer">
-        <div style="font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;color:var(--accent)">$0.99</div>
-        <div style="font-size:.75rem;color:var(--muted2);margin-top:3px">Single use</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;max-width:480px;margin:0 auto 1rem">
+      <div onclick="handleBizPay('annual')" style="background:rgba(240,180,41,.06);border:1px solid rgba(240,180,41,.45);border-radius:12px;padding:.85rem .7rem;cursor:pointer;text-align:center">
+        <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#f0b429;margin-bottom:.25rem">Best Value</div>
+        <div style="font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:800;color:var(--accent)">$99/yr</div>
+        <div style="font-size:.68rem;color:var(--muted2);margin-top:3px">Annual · save 31%</div>
       </div>
-      <div onclick="handleBizPay('monthly')" style="background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.3);border-radius:12px;padding:1rem;cursor:pointer">
-        <div style="font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;color:var(--accent)">$12/mo</div>
-        <div style="font-size:.75rem;color:var(--muted2);margin-top:3px">Unlimited · best value</div>
+      <div onclick="handleBizPay('monthly')" style="background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.35);border-radius:12px;padding:.85rem .7rem;cursor:pointer;text-align:center">
+        <div style="font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:800;color:var(--accent)">$12/mo</div>
+        <div style="font-size:.68rem;color:var(--muted2);margin-top:3px">Monthly</div>
+      </div>
+      <div onclick="handleBizPay('session')" style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:.85rem .7rem;cursor:pointer;text-align:center;opacity:.85">
+        <div style="font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:800;color:var(--accent)">$0.99</div>
+        <div style="font-size:.68rem;color:var(--muted2);margin-top:3px">24-hr pass</div>
       </div>
     </div>
     <p style="font-size:.7rem;color:var(--muted)">Secured by Square · Cancel anytime</p>
@@ -430,7 +438,11 @@ footer a{color:var(--accent2);text-decoration:none}
 </footer>
 
 <script>
-const WORKER_URL = 'https://justdocs-worker.robertjosephreynolds.workers.dev';
+const WORKER_URL        = 'https://justdocs-worker.robertjosephreynolds.workers.dev';
+const APP_NAME          = 'infinitybiz';
+const APP_URL           = 'https://contactinfinitysolutionsllc-ops.github.io/infinitybiz/';
+const SQUARE_MONTHLY_URL = 'https://square.link/u/pCpKBYg8'; // replace with Square monthly plan link once created
+const SQUARE_ANNUAL_URL  = 'https://square.link/u/zRrTqrz3'; // replace with Square annual plan link once created
 const FREE_KEY = 'biz_free';
 const FREE_LIMIT = 5;
 let currentTool = 'invoice';
@@ -563,13 +575,13 @@ Include a professional header, all the details above, and a polite thank you at 
 // ── SUBSCRIBER CHECK ─────────────────────────────────────
 let _subCache = null;
 async function isSubscribed() {
-  const email = localStorage.getItem('ig_account_email');
-  if(!email) return false;
-  if(_subCache !== null) return _subCache;
+  const session = getStoredSession();
+  if (!session) return false;
+  if (_subCache !== null) return _subCache;
   try {
     const res = await fetch(WORKER_URL, {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({action:'checkSubscriber', email, app:'infinitybiz'})
+      body: JSON.stringify({action:'checkSubscriber', email: session.email, app:'infinitybiz'})
     });
     const data = await res.json();
     _subCache = data.active === true;
@@ -584,9 +596,21 @@ function showPaywall() {
   document.getElementById('biz-paywall').scrollIntoView({behavior:'smooth'});
 }
 
+function showPaywallErr(msg) {
+  const el = document.getElementById('paywall-error');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function clearPaywallErr() {
+  const el = document.getElementById('paywall-error');
+  if (el) el.style.display = 'none';
+}
+
 async function unlockWithEmail() {
+  clearPaywallErr();
   const email = document.getElementById('unlock-email').value.trim();
-  if(!email || !email.includes('@')) { alert('Please enter a valid email.'); return; }
+  if(!email || !email.includes('@')) { showPaywallErr('Please enter a valid email address.'); return; }
   const btn = document.getElementById('unlock-btn');
   btn.textContent = 'Checking…'; btn.disabled = true;
   try {
@@ -599,62 +623,76 @@ async function unlockWithEmail() {
       localStorage.setItem('biz_email', email);
       _subCache = true;
       document.getElementById('biz-paywall').style.display = 'none';
-      document.getElementById('free-banner').style.display = 'none';
-      document.getElementById('free-banner').innerHTML = '<div class="free-left">✓ <strong>Unlimited</strong> — subscribed as ' + email + '</div>';
-      document.getElementById('free-banner').style.display = 'flex';
-      alert('Unlocked! Enjoy unlimited access.');
+      const banner = document.getElementById('free-banner');
+      if (banner) { banner.innerHTML = '<div class="free-left">✓ <strong>Unlimited</strong> — subscribed as ' + email + '</div>'; banner.style.display = 'flex'; }
     } else {
-      alert('No active subscription found for that email. Please subscribe below or try a different email.');
+      showPaywallErr('No active subscription found for that email. Please subscribe below or try a different email.');
     }
-  } catch { alert('Error checking subscription. Please try again.'); }
+  } catch { showPaywallErr('Error checking subscription. Please try again.'); }
   btn.textContent = 'Unlock'; btn.disabled = false;
 }
 
-async function handleBizPay(type) {
+async function handleBizPay(plan) {
+  clearPaywallErr();
   const email = document.getElementById('pay-email').value.trim();
-  if(!email || !email.includes('@')) { alert('Please enter your email first.'); return; }
+  if(!email || !email.includes('@')) {
+    const el = document.getElementById('pay-email');
+    if (el) { el.style.border = '1.5px solid #ff6b6b'; setTimeout(() => el.style.border = '', 2000); }
+    showPaywallErr('Please enter your email address above first.');
+    return;
+  }
   localStorage.setItem('biz_pending_email', email);
-  localStorage.setItem('biz_pending_type', type);
-  const amount = type === 'monthly' ? 12.00 : 0.99;
-  const label = type === 'monthly' ? 'Infinity Biz – Monthly Unlimited' : 'Infinity Biz – Single Use';
+  localStorage.setItem('biz_pending_plan', plan);
+  if(plan==='annual'&&SQUARE_ANNUAL_URL){window.location.href=SQUARE_ANNUAL_URL;return;}
+  if(plan==='monthly'&&SQUARE_MONTHLY_URL){window.location.href=SQUARE_MONTHLY_URL;return;}
+  const amounts={annual:99,monthly:12,session:0.99};
+  const labels={annual:'Infinity Hub – Annual',monthly:'Infinity Hub – Monthly',session:'Infinity Hub – Session Pass'};
   try {
     const res = await fetch(WORKER_URL, {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({action:'createPaymentLink', docType:label, amount,
-        redirectUrl:'https://contactinfinitysolutionsllc-ops.github.io/infinitybiz/?paid=true'})
+      body: JSON.stringify({action:'createPaymentLink', docType:labels[plan], amount:amounts[plan],
+        redirectUrl:APP_URL+'?paid=true&plan='+plan})
     });
     const data = await res.json();
     if(data.url) window.location.href = data.url;
-    else alert('Could not create payment link. Please try again.');
-  } catch { alert('Payment error. Please try again.'); }
+    else showPaywallErr('Could not create payment link. Please try again.');
+  } catch { showPaywallErr('Payment error. Please try again.'); }
 }
 
 // Handle Square return
 if(window.location.search.includes('paid=true')) {
-  const email = localStorage.getItem('ig_account_email');
-  const type = localStorage.getItem('biz_pending_type');
+  const email = localStorage.getItem('biz_pending_email');
+  const plan  = new URLSearchParams(window.location.search).get('plan')
+              ||localStorage.getItem('biz_pending_plan')||'monthly';
   if(email) {
     fetch(WORKER_URL, {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({action:'addSubscriber', email, app:'infinitybiz'})
+      body: JSON.stringify({action:'addSubscriber', email, app:APP_NAME, plan})
     }).then(() => {
       localStorage.setItem('biz_email', email);
-      if(type === 'single') {
-        const d = JSON.parse(localStorage.getItem(FREE_KEY)||'{}');
-        const m = new Date().toISOString().slice(0,7);
-        localStorage.setItem(FREE_KEY, JSON.stringify({month:m, count:Math.max(0,(d.count||1)-1)}));
-      }
       localStorage.removeItem('biz_pending_email');
-      localStorage.removeItem('biz_pending_type');
+      localStorage.removeItem('biz_pending_plan');
     });
   }
   window.history.replaceState({}, '', window.location.pathname);
 }
 
 // ── RUN TOOL ─────────────────────────────────────────────
+function showToolError(msg) {
+  const el = document.getElementById('tool-error');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function clearToolError() {
+  const el = document.getElementById('tool-error');
+  if (el) el.style.display = 'none';
+}
+
 async function runTool(tool) {
+  clearToolError();
   const prompt = buildPrompt(tool);
-  if(!prompt) { alert('Please fill in the required fields.'); return; }
+  if(!prompt) { showToolError('Please fill in all required fields before generating.'); return; }
 
   const subscribed = await isSubscribed();
   if(!subscribed && getFree() >= FREE_LIMIT) {
@@ -668,12 +706,16 @@ async function runTool(tool) {
   try {
     const res = await fetch(WORKER_URL, {
       method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({action:'claude', prompt})
+      body: JSON.stringify({action:'claude', prompt, email:getStoredSession()?.email||localStorage.getItem('ig_account_email')||''})
     });
     const data = await res.json();
-    lastOutput = data.result || 'Error generating content. Please try again.';
+    if (!data.result) throw new Error('Empty response');
+    lastOutput = data.result;
   } catch(err) {
-    lastOutput = 'Error generating content. Please try again.';
+    document.getElementById('loading').style.display = 'none';
+    document.querySelector('#panel-'+tool+' .btn-primary').disabled = false;
+    showToolError('Error generating content. Please check your connection and try again.');
+    return;
   }
 
   document.getElementById('loading').style.display = 'none';
@@ -685,21 +727,30 @@ async function runTool(tool) {
   if(!subscribed) { incFree(); updateFreeUI(); }
 }
 
-// ── COPY / NEW ────────────────────────────────────────────
+// ── COPY / DOWNLOAD / NEW ─────────────────────────────────
 function copyOutput() {
+  if (!lastOutput) return;
+  const btn = document.getElementById('copy-btn');
+  const original = btn.textContent;
   navigator.clipboard.writeText(lastOutput).then(() => {
-    const btn = document.getElementById('copy-btn');
     btn.textContent = '✓ Copied!';
     btn.classList.add('copied');
-    setTimeout(() => { btn.textContent = '📋 Copy'; btn.classList.remove('copied'); }, 2000);
+    setTimeout(() => { btn.textContent = original; btn.classList.remove('copied'); }, 2000);
   });
+}
+function downloadOutput() {
+  if (!lastOutput) return;
+  const date = new Date().toISOString().slice(0,10);
+  const a = document.createElement('a');
+  a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(lastOutput);
+  a.download = 'infinitybiz-' + (currentTool || 'output') + '-' + date + '.txt';
+  a.click();
 }
 function newContent() {
   document.getElementById('output-wrap').style.display = 'none';
+  clearToolError();
   window.scrollTo({top:0,behavior:'smooth'});
 }
-
-updateFreeUI();
 
 // ── ACCOUNT AUTH (replaces email unlock) ─────────────────────────────────
 function getStoredSession() {
@@ -734,13 +785,6 @@ function getStoredSession() {
   return { token, email, name };
 }
 
-async function isSubscribed() {
-  const session = getStoredSession();
-  if (!session) return false;
-  _subCache = true;
-  return true;
-}
-
 function showSignedInBar(name, email) {
   const bar = document.getElementById('sub-bar');
   const lbl = document.getElementById('sub-bar-lbl');
@@ -754,13 +798,39 @@ function showSignInBar() {
   const bar = document.getElementById('sub-bar');
   const lbl = document.getElementById('sub-bar-lbl');
   const btn = document.getElementById('sub-bar-btn');
-  if (bar) bar.classList.remove('signed-in');
+  if (bar) { bar.classList.remove('signed-in'); bar.style.background = ''; }
   if (lbl) { lbl.textContent = 'Sign in to use this tool.'; lbl.classList.remove('ok'); }
   if (btn) { btn.textContent = 'Sign In →'; btn.classList.remove('signed-in');
              btn.href = 'https://contactinfinitysolutionsllc-ops.github.io/account/?return=' + encodeURIComponent(window.location.href); }
 }
+function showSubscribeBar(name, email) {
+  const bar = document.getElementById('sub-bar');
+  const lbl = document.getElementById('sub-bar-lbl');
+  const btn = document.getElementById('sub-bar-btn');
+  if (bar) { bar.classList.add('signed-in'); bar.style.background = 'rgba(255,193,7,.08)'; }
+  if (lbl) { lbl.textContent = '⚡ Signed in as ' + (name || email) + ' — upgrade for unlimited'; lbl.classList.remove('ok'); }
+  if (btn) { btn.textContent = 'Subscribe →'; btn.classList.remove('signed-in');
+             btn.href = '#biz-paywall'; }
+}
+
+// ── INIT ──────────────────────────────────────────────────
+(async () => {
+  const session = getStoredSession();
+  if (session) {
+    const sub = await isSubscribed();
+    if (sub) {
+      showSignedInBar(session.name, session.email);
+      const banner = document.getElementById('free-banner');
+      if (banner) banner.style.display = 'none';
+    } else {
+      showSubscribeBar(session.name, session.email);
+    }
+  } else {
+    showSignInBar();
+  }
+  updateFreeUI();
+})();
 
 </script>
-<script src="https://contactinfinitysolutionsllc-ops.github.io/account/ig-account.js"></script>
 </body>
 </html>
